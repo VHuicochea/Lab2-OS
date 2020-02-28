@@ -1,7 +1,9 @@
 // Function declarations for builtin shell commands:
-int sh_cd(char **args);
-int sh_help(char **args); // Take out
-int sh_exit(char **args);
-int sh_chprmpt(char **args);
-void printDir();
-int parsePipe(char* line, char** linePiped);
+int _cd(char **args);
+int myExit(char **args);
+int _chprmpt(char **args);
+void _printDir();
+char **_split_line(char *line);
+char *_read_line(void);
+int _execute(char **args);
+int _launch(char **args);
