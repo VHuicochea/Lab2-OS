@@ -17,3 +17,5 @@ int _launch(char **args);
 int _piping(char **firstCommand, char **secondCommand);
 int _parsePipe(char *line, char **linePiped);
 void _loop(void);
+int _parseRedirection(char *line, char **linePiped);
+void _redirecting(char **command1, char **command2);

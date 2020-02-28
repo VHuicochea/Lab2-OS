@@ -10,6 +10,7 @@
 */
 
 #include "builtIn.c"
+#include <fcntl.h>
 
 // List of builtin commands, followed by their corresponding functions
 
@@ -151,6 +152,28 @@ int _parsePipe(char *line, char **linePiped)
     }
 }
 
+// Function to search for redirect
+int _parseRedirection(char *line, char **linePiped)
+{
+    for (int i = 0; i < 2; i++)
+    {
+        linePiped[i] = strsep(&line, ">");
+        if (linePiped[i] == NULL)
+        {
+            break;
+        }
+    }
+
+    if (linePiped[1] == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 // Pipe Handling
 int _piping(char **firstCommand, char **secondCommand){
     int fileDescriptors[2];
@@ -167,7 +190,6 @@ int _piping(char **firstCommand, char **secondCommand){
         close(fileDescriptors[0]);
         
         execvp(firstCommand[0], firstCommand);
-        write(fileDescriptors[1], "dumbass", 10000);
         perror("First program execution failed");
         close(fileDescriptors[1]);
         exit(1);
@@ -194,6 +216,22 @@ int _piping(char **firstCommand, char **secondCommand){
     return 1;
 }
 
+void _redirecting(char **command1, char **command2)
+{
+    int pid;
+    int fileDescriptor;
+
+    fileDescriptor = open(command2[0], O_CREAT|O_TRUNC|O_WRONLY, 0644);
+
+    printf("_redirecting");
+
+    dup2(fileDescriptor, 1);
+
+    execvp(command1[0], command1);
+    perror(command1[0]);
+    exit(1);
+}
+
 char *_read_line(void){
     char *line = NULL;
     ssize_t bufsize = 0;
@@ -203,19 +241,21 @@ char *_read_line(void){
 
 void _loop(void)
 {
-    char *line;
+    char *line, *linecopy;
     char **args, **firstCommand, **secondCommand;
     int status;
-    int pipeFlag;
+    int pipeFlag, redirectionFlag;
 
-    char *linePiped[2];
+    char *linePiped[2], *linePiped2[2]; 
 
     do
     {
         _printDir();
         line = _read_line();
+        linecopy = line;
         // Determine if command contains pipe
         pipeFlag = _parsePipe(line, linePiped);
+        redirectionFlag = _parseRedirection(linecopy, linePiped2);
 
         if (pipeFlag)
         {
@@ -224,12 +264,21 @@ void _loop(void)
             status = _piping(firstCommand, secondCommand);
             free(firstCommand);
             free(secondCommand);
-        } else{
+        }
+        else if(redirectionFlag)
+        {   
+            firstCommand = _split_line(linePiped2[0]);
+            secondCommand = _split_line(linePiped2[1]);
+            _redirecting(firstCommand, secondCommand);
+            status = 1;
+            free(firstCommand);
+            free(secondCommand);
+        }else{
             args = _split_line(line);
             status = _execute(args);
             free(line);
             free(args);
         }
-        
+
     } while (status);
 }
