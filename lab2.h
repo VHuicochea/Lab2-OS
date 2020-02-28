@@ -1,3 +1,10 @@
+/*
+* Author: Luis A. Gutierrez and Victor Huicochea 
+* CS 4375
+* Date: Feb 28, 2020
+* This program is a custom shell for the Unix system. This program mimics the some of the behaviors of the bash shell. 
+*/
+
 // Function declarations for builtin shell commands:
 int _cd(char **args);
 int myExit(char **args);

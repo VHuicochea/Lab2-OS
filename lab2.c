@@ -5,22 +5,32 @@
 * This program is a custom shell for the Unix system. This program mimics the some of the behaviors of the bash shell. 
 */
 
-#include <sys/wait.h>
-#include <unistd.h>
-#include <stdlib.h> 
-#include <stdio.h> 
-#include <string.h> 
-#include "lab2.h"
+#include "builtIn.c"
 
-// Global Variable for prompt
-char *PS1 = "$ ";
+
+// List of builtin commands, followed by their corresponding functions
+
+char *builtin_str[] = {
+    "cd",
+    "exit",
+    "chprmpt"};
+
+int (*builtin_func[])(char **) = {
+    &_cd,
+    &myExit,
+    &_chprmpt};
+
+int _num_builtins()
+{
+    return sizeof(builtin_str) / sizeof(char *);
+}
 
 // Function to print current directory
 void _printDir(){
     char cwd[1024];
     char *username = getenv("USER");
     getcwd(cwd, sizeof(cwd));
-    printf("\n%s@myShell:~%s %s", username, cwd, PS1);
+    printf("\n%s@ourShell:~%s %s", username, cwd, PS1);
 }
 
 #define TOK_BUFSIZE 64
@@ -60,38 +70,6 @@ char **_split_line(char *line)
     return tokens;
 }
 
-void _loop(void)
-{
-    char *line;
-    char **args, **firstCommand, **secondCommand;
-    int status;
-    int pipeFlag;
-
-    char *linePiped[2];
-
-    do
-    {
-        _printDir();
-        line = _read_line();
-        // Determine if command contains pipe
-        pipeFlag = _parsePipe(line, linePiped);
-
-        if (pipeFlag)
-        {
-            firstCommand = _split_line(linePiped[0]);
-            secondCommand = _split_line(linePiped[1]);
-            status = _piping(firstCommand, secondCommand);
-            free(firstCommand);
-            free(secondCommand);
-        } else{
-            args = _split_line(line);
-            status = _execute(args);
-            free(line);
-            free(args);
-        }
-        
-    } while (status);
-}
 
 int _execute(char **args)
 {
@@ -220,7 +198,35 @@ char *_read_line(void){
     return line;
 }
 
-int main(){
-    printDir();
-    printf("Test: %s", sh_read_line());
+void _loop(void)
+{
+    char *line;
+    char **args, **firstCommand, **secondCommand;
+    int status;
+    int pipeFlag;
+
+    char *linePiped[2];
+
+    do
+    {
+        _printDir();
+        line = _read_line();
+        // Determine if command contains pipe
+        pipeFlag = _parsePipe(line, linePiped);
+
+        if (pipeFlag)
+        {
+            firstCommand = _split_line(linePiped[0]);
+            secondCommand = _split_line(linePiped[1]);
+            status = _piping(firstCommand, secondCommand);
+            free(firstCommand);
+            free(secondCommand);
+        } else{
+            args = _split_line(line);
+            status = _execute(args);
+            free(line);
+            free(args);
+        }
+        
+    } while (status);
 }

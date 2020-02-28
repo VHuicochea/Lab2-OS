@@ -1,5 +1,5 @@
-compile: lab2.c lab2.h
-	gcc -o lab2.out lab2.c
+compile: main.c lab2.c builtIn.c lab2.h
+	gcc -o main main.c
 
-run: lab2.out
-	./lab2.out
+run: main
+	./main
