@@ -114,6 +114,72 @@ int _launch(char **args)
     return 1;
 }
 
+// Function to search for pipes
+int _parsePipe(char *line, char **linePiped)
+{
+
+    for (int i = 0; i < 2; i++)
+    {
+        linePiped[i] = strsep(&line, "|");
+        if (linePiped[i] == NULL)
+        {
+            break;
+        }
+    }
+
+    if (linePiped[1] == NULL)
+    {
+        return 0; // No pipe is found
+    }
+    else
+    {
+        return 1; // Pipe found
+    }
+}
+
+// Pipe Handling
+int _piping(char **firstCommand, char **secondCommand){
+    int fileDescriptors[2];
+    char input_str2[100];
+
+
+    if(pipe(fileDescriptors) == -1){
+        perror("pipe failed");
+        return -1;
+    }
+
+    if(fork() == 0){ //child 1
+        dup2(fileDescriptors[1], STDOUT_FILENO);
+        close(fileDescriptors[0]);
+        
+        execvp(firstCommand[0], firstCommand);
+        write(fileDescriptors[1], "dumbass", 10000);
+        perror("First program execution failed");
+        close(fileDescriptors[1]);
+        exit(1);
+    }
+
+    if(fork() == 0){ //child 2
+             // Pipe:
+           
+            dup2(fileDescriptors[0], STDIN_FILENO);   // Redirect STDIN to Input part of pipe         
+            
+            close(fileDescriptors[1]);       //closing pipe write
+            close(fileDescriptors[0]);       //close read pipe 
+
+            execvp(secondCommand[0], secondCommand);    // pass the second part of command line as argument
+            perror("Second program execution failed");
+            exit(1);
+        
+    }
+
+    close(fileDescriptors[0]);
+    close(fileDescriptors[1]);
+    wait(0); // Wait for child 1 to finish
+    wait(0); // Wait for child 2
+    return 1;
+}
+
 char *_read_line(void){
     char *line = NULL;
     ssize_t bufsize = 0;
