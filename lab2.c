@@ -23,6 +23,14 @@ void printDir(){
     printf("\n%s@myShell:~%s %s", username, cwd, PS1);
 }
 
+char *sh_read_line(void){
+    char *line = NULL;
+    ssize_t bufsize = 0;
+    getline(&line, &bufsize, stdin);
+    return line;
+}
+
 int main(){
     printDir();
+    printf("Test: %s", sh_read_line());
 }
