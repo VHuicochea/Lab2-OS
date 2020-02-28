@@ -9,3 +9,4 @@ int _execute(char **args);
 int _launch(char **args);
 int _piping(char **firstCommand, char **secondCommand);
 int _parsePipe(char *line, char **linePiped);
+void _loop(void);

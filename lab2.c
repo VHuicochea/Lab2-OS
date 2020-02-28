@@ -60,6 +60,39 @@ char **_split_line(char *line)
     return tokens;
 }
 
+void _loop(void)
+{
+    char *line;
+    char **args, **firstCommand, **secondCommand;
+    int status;
+    int pipeFlag;
+
+    char *linePiped[2];
+
+    do
+    {
+        _printDir();
+        line = _read_line();
+        // Determine if command contains pipe
+        pipeFlag = _parsePipe(line, linePiped);
+
+        if (pipeFlag)
+        {
+            firstCommand = _split_line(linePiped[0]);
+            secondCommand = _split_line(linePiped[1]);
+            status = _piping(firstCommand, secondCommand);
+            free(firstCommand);
+            free(secondCommand);
+        } else{
+            args = _split_line(line);
+            status = _execute(args);
+            free(line);
+            free(args);
+        }
+        
+    } while (status);
+}
+
 int _execute(char **args)
 {
     int i;
